@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memento Mori</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --black: #eee;
+      --white: #111;
+      --mid: #777;
+      --light: #2a2a2a;
+    }
+
+    body {
+      background: var(--white);
+      color: var(--black);
+      font-family: Georgia, 'Times New Roman', serif;
+      padding: 64px 24px 80px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .latin {
+      font-style: italic;
+      color: var(--mid);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    .description {
+      font-size: 0.95rem;
+      line-height: 1.85;
+      color: #444;
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--black);
+      margin: 40px 0;
+    }
+
+    /* ── Input section ── */
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .input-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    input[type="date"] {
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      border: 1px solid var(--black);
+      padding: 9px 18px;
+      background: var(--white);
+      color: var(--black);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+    }
+
+    input[type="date"]:focus {
+      outline: 2px solid var(--black);
+      outline-offset: 2px;
+    }
+
+    /* ── Stats ── */
+    .stats {
+      display: none;
+      text-align: center;
+      width: 100%;
+    }
+
+    .stats.visible {
+      display: block;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 52px;
+      margin-bottom: 18px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-top: 2px;
+    }
+
+    .progress-track {
+      width: 100%;
+      max-width: 420px;
+      height: 3px;
+      background: var(--light);
+      margin: 0 auto 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--black);
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    .progress-label {
+      font-size: 0.78rem;
+      color: var(--mid);
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin-bottom: 16px;
+      font-size: 0.78rem;
+      color: #555;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .legend-box {
+      width: 11px;
+      height: 11px;
+      border: 1px solid var(--black);
+      flex-shrink: 0;
+    }
+
+    .legend-box.past   { background: var(--black); border-color: var(--black); }
+    .legend-box.now    { background: var(--mid);   border-color: var(--mid); }
+    .legend-box.future { background: var(--white); }
+
+    /* ── Grid ── */
+    .grid-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .grid-inner {
+      display: inline-block;
+    }
+
+    /* Week column header row */
+    .col-headers {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 4px;
+      gap: 2px;
+    }
+
+    .col-spacer {
+      width: 30px;
+      flex-shrink: 0;
+    }
+
+    .col-header {
+      width: 11px;
+      font-size: 0.58rem;
+      color: var(--mid);
+      text-align: center;
+      flex-shrink: 0;
+      font-family: 'Courier New', monospace;
+      line-height: 1;
+    }
+
+    /* Rows */
+    .grid-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .grid-row + .grid-row {
+      margin-top: 2px;
+    }
+
+    .grid-row.decade-gap {
+      margin-top: 10px;
+    }
+
+    .year-label {
+      width: 30px;
+      font-size: 0.62rem;
+      color: var(--mid);
+      text-align: right;
+      padding-right: 6px;
+      flex-shrink: 0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .year-label.decade-mark {
+      color: var(--black);
+      font-weight: bold;
+    }
+
+    .cell {
+      width: 11px;
+      height: 11px;
+      border: 1px solid var(--light);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .cell.past   { background: var(--black); border-color: var(--black); }
+    .cell.now    { background: var(--mid);   border-color: var(--mid); }
+
+    .cell.past::before,
+    .cell.past::after {
+      content: '';
+      position: absolute;
+      background: #c0392b;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .cell.past::before { width: 1px; height: 7px; }
+    .cell.past::after  { width: 7px; height: 1px; }
+
+    /* Grid caption */
+    .grid-caption {
+      margin-top: 12px;
+      font-size: 0.72rem;
+      color: var(--mid);
+      text-align: center;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--black);
+    }
+
+    blockquote {
+      font-style: italic;
+      font-size: 1.1rem;
+      line-height: 1.9;
+      max-width: 460px;
+      margin: 0 auto 14px;
+    }
+
+    cite {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--mid);
+      text-transform: uppercase;
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Memento Mori</h1>
+    <p class="latin">Remember that you will die</p>
+    <p class="description">
+      This calendar maps the full span of a human life — 80 years, 52 weeks each,
+      4,160 boxes in total. Every box is one week. The ones behind you are filled.
+      The one you're in is marked. The rest are still open. Enter your date of birth
+      to see where you are.
+    </p>
+  </header>
+
+  <hr>
+
+  <section class="input-section">
+    <label class="input-label" for="birthdate">Date of birth</label>
+    <input type="date" id="birthdate">
+
+    <div class="stats" id="stats">
+      <div class="stats-row">
+        <div>
+          <span class="stat-value" id="val-lived">—</span>
+          <span class="stat-label">Weeks lived</span>
+        </div>
+        <div>
+          <span class="stat-value" id="val-remaining">—</span>
+          <span class="stat-label">Weeks remaining</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <p class="progress-label" id="progress-label"></p>
+    </div>
+  </section>
+
+  <hr>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box past"></div>  Weeks lived</div>
+    <div class="legend-item"><div class="legend-box now"></div>   This week</div>
+    <div class="legend-item"><div class="legend-box future"></div>Weeks ahead</div>
+  </div>
+
+  <div class="grid-scroll">
+    <div class="grid-inner">
+
+      <div class="col-headers" id="col-headers"></div>
+      <div id="grid"></div>
+
+    </div>
+  </div>
+
+  <p class="grid-caption">Each row is one year &nbsp;·&nbsp; Each box is one week</p>
+
+  <footer>
+    <blockquote>
+      "It is not that we have a short time to live,<br>
+      but that we waste so much of it."
+    </blockquote>
+    <cite>— Seneca, <em>On the Shortness of Life</em></cite>
+  </footer>
+
+  <script>
+    const YEARS = 80;
+    const WEEKS = 52;
+    const TOTAL = YEARS * WEEKS; // 4160
+    const MS_WEEK = 7 * 24 * 60 * 60 * 1000;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Cap date input at today
+    document.getElementById('birthdate').max = today.toISOString().split('T')[0];
+
+    // Build week column headers (label weeks 1, 13, 26, 39, 52)
+    const markedWeeks = new Set([1, 13, 26, 39, 52]);
+    const colHeaders = document.getElementById('col-headers');
+    const spacer = document.createElement('div');
+    spacer.className = 'col-spacer';
+    colHeaders.appendChild(spacer);
+
+    for (let w = 1; w <= WEEKS; w++) {
+      const el = document.createElement('div');
+      el.className = 'col-header';
+      el.textContent = markedWeeks.has(w) ? w : '';
+      colHeaders.appendChild(el);
+    }
+
+    // Render initial empty grid
+    renderGrid(-1);
+
+    document.getElementById('birthdate').addEventListener('change', function () {
+      if (!this.value) return;
+      const birth = new Date(this.value);
+      birth.setHours(0, 0, 0, 0);
+      const lived = Math.floor((today - birth) / MS_WEEK);
+      renderGrid(lived);
+      updateStats(lived);
+    });
+
+    function renderGrid(weeksLived) {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+
+      for (let year = 0; year < YEARS; year++) {
+        const row = document.createElement('div');
+        row.className = 'grid-row';
+        if (year > 0 && year % 10 === 0) row.classList.add('decade-gap');
+
+        const label = document.createElement('span');
+        label.className = 'year-label' + (year % 10 === 0 ? ' decade-mark' : '');
+        label.textContent = year;
+        row.appendChild(label);
+
+        for (let week = 0; week < WEEKS; week++) {
+          const idx = year * WEEKS + week;
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (weeksLived >= 0) {
+            if (idx < weeksLived)      cell.classList.add('past');
+            else if (idx === weeksLived) cell.classList.add('now');
+          }
+          row.appendChild(cell);
+        }
+
+        grid.appendChild(row);
+      }
+    }
+
+    function updateStats(lived) {
+      const remaining = Math.max(0, TOTAL - lived - 1);
+      const pct = Math.min(100, (lived / TOTAL) * 100);
+
+      document.getElementById('val-lived').textContent     = lived.toLocaleString();
+      document.getElementById('val-remaining').textContent = remaining.toLocaleString();
+      document.getElementById('progress-fill').style.width = pct.toFixed(2) + '%';
+      document.getElementById('progress-label').textContent =
+        pct.toFixed(1) + '% of the calendar is behind you';
+
+      document.getElementById('stats').classList.add('visible');
+    }
+  </script>
+
+</body>
+</html>
