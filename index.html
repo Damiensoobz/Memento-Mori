@@ -12,10 +12,10 @@
     }
 
     :root {
-      --black: #eee;
-      --white: #111;
-      --mid: #777;
-      --light: #2a2a2a;
+      --black: #111;
+      --white: #fff;
+      --mid: #888;
+      --light: #ddd;
     }
 
     body {
@@ -261,8 +261,8 @@
       transform: translate(-50%, -50%);
     }
 
-    .cell.past::before { width: 1px; height: 7px; }
-    .cell.past::after  { width: 7px; height: 1px; }
+    .cell.past::before { width: 1px; height: 7px; transform: translate(-50%, -50%) rotate(45deg); }
+    .cell.past::after  { width: 7px; height: 1px; transform: translate(-50%, -50%) rotate(45deg); }
 
     /* Grid caption */
     .grid-caption {
